@@ -1,12 +1,13 @@
 const baseUrl = exports.baseUrl = 'http://intlsystem-mobile.nippon-rad.co.jp/mobile/';
 const cookiesUrl = 'http://intlsystem-mobile.nippon-rad.co.jp/hwr/';
+const ut = require('./util.js');
 
 exports.apitable = {
     getSession: {
         pre(inputs) {
             const options = {
                 url: baseUrl + 'index.jsp',
-                methd: 'GET'
+                method: 'GET'
             };
 
             return options;
@@ -23,12 +24,13 @@ exports.apitable = {
         pre() {
             const options = {
                 url: baseUrl + 'login.jsp',
-                methd: 'POST',
-                form: {}
+                method: 'POST',
+                form: {
+                    NUM: this.userid,
+                    PASS: this.password
+                    
+                }
             };
-            
-            options.form.NUM = this.userid;
-            options.form.PASS = this.password;
 
             return options;
         }

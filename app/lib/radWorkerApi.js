@@ -5,6 +5,7 @@ const apitable = require('./apitable');
 const fs = require('./promisifiedFs');
 const Iconv = require('iconv').Iconv;
 const jschardet = require('jschardet');
+const http = require('http');
 
 class RadApi {
     log(...args) {
@@ -49,10 +50,13 @@ class RadApi {
 
     getData(options) {
         if (typeof(options) == 'string') {
-            options = {url:options};
+            options = {
+                url: options,
+                method: 'GET'
+            };
         }
         options.encoding = null;
-        options.jar = this.jar;
+        // options.jar = this.jar;
         const connectData = {
             date: Date.now()
         };
@@ -61,19 +65,18 @@ class RadApi {
         this.log('start request:', options);
 
         return new Promise((resolve, reject) => request(options, (error, response, body) => {
-            this.log('response request');
-            connectData.response = response;
-            connectData.error = error;
-            
             if (error) {
                 this.log('error:', error);
                 this.error = error;
                 reject(error);
             }
             else {
+                if (response.statusCode == 302) {
+                    return resolve(this.getData(response.headers.location));
+                }
                 this.response = response;
                 const detectResult = jschardet.detect(response.body);
-                const iconv = new Iconv(detectResult.encoding, 'UTF-8//TRANSLIT//IGNORE');
+                const iconv = new Iconv(detectResult.encoding || 'Shift_JIS', 'UTF-8//TRANSLIT//IGNORE');
                 const convertedString = iconv.convert(body).toString();
                 this.$ = $.load(convertedString);
                 resolve(convertedString);
